@@ -33,12 +33,13 @@ bin include lib pip-selfcheck.json test
 make() {
 echo -e $BLUE"Creating Virtualenv"
 virtualenv --python=python2.7 $molecule_path
+source ./bin/activate
 mkdir roles
 }
 
 requirements() {
 echo -e $BLUE"Installing requirements for molecule"
-$molecule_path/bin/pip install -r requirements.txt
+pip2.7 install --trusted-host pypi.python.org -r requirements.txt
 }
 
 init() {
@@ -60,12 +61,15 @@ else
   echo -e $YELLOW"Creating links to base"
   pwd
   cd $molecule_path
-  ln -s ./roles/base ../base 
+  ln -s ./roles/base test
 fi
 }
 
+library() {
+  echo "    - role: core" >> /test/molecule/default/playbook.yml
+}
 
-#color_test
+color_test
 clean
 make
 requirements
