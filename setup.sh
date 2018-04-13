@@ -1,7 +1,7 @@
 #!/bin/bash
 
 molecule_path=`pwd`
-role_path="./roles"
+role_path="./roles/"
 
 # Colors
 BLACK="\033[0;30m"        # BLACK
@@ -66,12 +66,26 @@ fi
 }
 
 library() {
-  echo "    - role: core" >> /test/molecule/default/playbook.yml
+
+cd $molecule_path
+input="library.yml"
+while IFS= read -r var
+do
+  repo_url="$(cut -d'|' -f2 <<<"$var")"   
+  repo_name="$(cut -d'|' -f1 <<<"$var")"
+  repo_hash="$(cut -d'|' -f3 <<<"$var")"
+  echo -e $BLUE"downloading $repo_name $repo_hash" 
+  cd $role_path
+  git clone $repo_url $repo_name 
+done < "$input"
+
 }
 
-color_test
-clean
-make
-requirements
-init
-link
+#color_test
+#clean
+#make
+#requirements
+#init
+#link
+library
+
