@@ -20,21 +20,22 @@ colors=( "$BLACK" "$RED" "$GREEN" \
 color_test () {
   for i in "${colors[@]}"; do 
     echo -e $i testing colors   
-    echo ls 
+    echo colors  
   done
 }
 
 clean() {
 
-  echo -e $RED"Removing all requirements"
   home_path
+  echo -e $RED"Removing all requirements"
   rm -rf \
-  bin include lib pip-selfcheck.json test
+  bin include lib pip-selfcheck.json roles test
 
 }
 
 make() {
 
+  home_path
   echo -e $BLUE"Creating Virtualenv"
   virtualenv --python=python2.7 $molecule_path
   source ./bin/activate
@@ -44,6 +45,7 @@ make() {
 
 requirements() {
 
+  home_path
   echo -e $BLUE"Installing requirements for molecule"
   pip2.7 install --trusted-host pypi.python.org -r requirements.txt
 
@@ -51,7 +53,8 @@ requirements() {
 
 init() {
 
-  if [ -d "$role_path/base" ]; then
+  home_path
+  if [ -d "./roles/base" ]; then
     echo -e $BLUE"skipping initilization of molecule role base"
   else
     echo -e $YELLOW"Creating molecule base" 
@@ -59,7 +62,8 @@ init() {
     ../bin/molecule init template \
     --url https://github.com/bnikolaus/cookiecutter-molecule \
     --role-name base --no-input
-fi
+
+  fi
 }
 
 link() {
@@ -97,10 +101,25 @@ library() {
       echo -e $GREEN"downloading $repo_name $repo_hash" 
       git clone $repo_url $repo_name
     fi
+    home_path 
+    add_role="    - role: $repo_name" 
+    if grep -Fxq "$add_role" ./roles/base/molecule/default/playbook.yml; then
+      echo -e $RED"Role $repo_name found skipping"   
+    else
+      echo -e $GREEN"Adding role $repo_name to molecule test"
+      echo "    - role: $repo_name" >> ./roles/base/molecule/default/playbook.yml 
+    fi  
   done < "$input"
-
+    
 }
 
+runtest() {
+
+  home_path
+  cd test 
+  molecule test
+
+}
 
 home_path() {
 
@@ -117,11 +136,11 @@ role_path() {
 
 #role_path
 #home_path
-#color_test
-#clean
-#make
-#requirements
-#init
-#link
+color_test
+clean
+make
+requirements
+init
+link
 library
-
+runtest
